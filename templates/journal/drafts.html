@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block content %}
+<h3>My Drafts</h3>
+<div id="drafts-table"
+     hx-get="{% url 'journal:drafts' %}"
+     hx-trigger="load"
+     hx-swap="outerHTML">Loading…</div>
+{% endblock %}

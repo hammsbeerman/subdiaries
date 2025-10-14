@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% block content %}
+<h3>Tabs</h3>
+
+<form class="row g-2 mb-3"
+      hx-post="{% url 'journal:tab_create' %}"
+      hx-target="#tabs-table"
+      hx-swap="outerHTML">
+  {% csrf_token %}
+  <div class="col-md-5"><input type="text" name="name" class="form-control" placeholder="Tab name"></div>
+  <div class="col-md-3 form-check mt-2">
+    <input class="form-check-input" type="checkbox" name="enabled" id="id_enabled">
+    <label class="form-check-label" for="id_enabled">Enabled</label>
+  </div>
+  <div class="col-md-2"><button class="btn btn-primary">Add Tab</button></div>
+</form>
+<div id="tabs-error"></div>
+
+<div id="tabs-table"
+     hx-get="{% url 'journal:tabs' %}"
+     hx-trigger="load"
+     hx-swap="outerHTML">Loading…</div>
+{% endblock %}

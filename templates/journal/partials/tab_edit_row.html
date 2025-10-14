@@ -1,0 +1,25 @@
+<tr id="tab-row-{{ t.pk }}">
+  <td colspan="3">
+    <form class="row g-2 align-items-end"
+          hx-post="{% url 'journal:tab_update' t.pk %}"
+          hx-target="#tabs-table" hx-swap="outerHTML">
+      {% csrf_token %}
+
+      <div class="col-md-6">
+        <label class="form-label">Tab name</label>
+        {{ form.name }}
+        {% for e in form.name.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div class="col-md-6 text-end">
+        <button class="btn btn-primary">Save</button>
+        <button class="btn btn-secondary ms-1"
+                type="button"
+                hx-get="{% url 'journal:tabs' %}"
+                hx-target="#tabs-table" hx-swap="outerHTML">
+          Cancel
+        </button>
+      </div>
+    </form>
+  </td>
+</tr>

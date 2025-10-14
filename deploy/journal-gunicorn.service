@@ -1,0 +1,16 @@
+
+[Unit]
+Description=Journal Gunicorn
+After=network.target
+
+[Service]
+User=journal
+Group=www-data
+WorkingDirectory=/home/journal/app
+EnvironmentFile=/home/journal/app/.env
+Environment=DJANGO_SETTINGS_MODULE=journal_project.settings.prod
+ExecStart=/home/journal/app/.venv/bin/gunicorn journal_project.wsgi:application --bind 127.0.0.1:8000 --workers 3 --timeout 90
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

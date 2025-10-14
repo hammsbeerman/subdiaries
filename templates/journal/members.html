@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% block content %}
+<h3>Org Members</h3>
+
+<div id="invite-link"></div>
+
+<div id="member-invite-form">
+  {% include "journal/partials/member_invite_form.html" with invite_form=form %}
+</div>
+
+<div id="member-add-form">
+  {% include "journal/partials/member_add_form.html" with form=form %}
+</div>
+
+<div id="members-table"
+     hx-get="{% url 'journal:members' %}"
+     hx-trigger="load"
+     hx-swap="outerHTML">Loading…</div>
+{% endblock %}

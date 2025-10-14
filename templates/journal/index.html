@@ -1,0 +1,22 @@
+
+{% extends 'base.html' %}
+{% block content %}
+<h3>Approved Entries</h3>
+<div class="mb-3">
+  {% for t in tabs %}<span class="badge text-bg-secondary me-1">{{ t.name }}</span>{% endfor %}
+</div>
+<div class="row g-3">
+  {% for e in entries %}
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">{{ e.title }}</h5>
+        <p class="card-text">{{ e.body|truncatewords:40 }}</p>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <p class="text-muted">No entries yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}

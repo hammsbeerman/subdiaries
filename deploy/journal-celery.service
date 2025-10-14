@@ -1,0 +1,16 @@
+
+[Unit]
+Description=Journal Celery Worker
+After=network.target redis-server.service
+
+[Service]
+User=journal
+Group=www-data
+WorkingDirectory=/home/journal/app
+EnvironmentFile=/home/journal/app/.env
+Environment=DJANGO_SETTINGS_MODULE=journal_project.settings.prod
+ExecStart=/home/journal/app/.venv/bin/celery -A journal worker -l info
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

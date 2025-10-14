@@ -1,0 +1,19 @@
+<table class="table table-sm" id="review-table">
+  <tr><th>Title</th><th>Author</th><th></th></tr>
+  {% for e in entries %}
+    <tr>
+      <td>{{ e.title }}</td>
+      <td>{{ e.author }}</td>
+      <td class="text-nowrap">
+        <form hx-post="{% url 'journal:entry_approve' e.pk %}" hx-target="#review-table" hx-swap="outerHTML" class="d-inline">
+          {% csrf_token %}<button class="btn btn-success btn-sm">Approve</button>
+        </form>
+        <form hx-post="{% url 'journal:entry_reject' e.pk %}" hx-target="#review-table" hx-swap="outerHTML" class="d-inline ms-1">
+          {% csrf_token %}<button class="btn btn-outline-warning btn-sm">Send Back</button>
+        </form>
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="3"><em>Nothing to review.</em></td></tr>
+  {% endfor %}
+</table>

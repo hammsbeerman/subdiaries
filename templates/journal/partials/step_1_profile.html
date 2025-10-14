@@ -1,0 +1,15 @@
+<div class="card mb-3">
+  <div class="card-body">
+    <h5 class="card-title text-accent">Step 1 · Set your display name</h5>
+    <form hx-post="{% url 'journal:tutorial_step' 1 %}" hx-target="#tutorial-steps" hx-swap="innerHTML">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">Display name</label>
+        {{ form.full_name }}
+        {{ form.full_name.errors }}
+      </div>
+      <button class="btn btn-primary" name="action" value="save">Save & Continue</button>
+      <button class="btn btn-secondary ms-2" name="action" value="skip">Skip</button>
+    </form>
+  </div>
+</div>

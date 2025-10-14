@@ -1,0 +1,31 @@
+<form id="member-invite-form"
+      hx-post="{% url 'journal:member_invite' %}"
+      hx-target="#members-table"
+      hx-swap="outerHTML"
+      hx-select-oob="#member-invite-form,#invite-link">
+  {% csrf_token %}
+
+  <div class="row g-2 mb-2">
+    <div class="col-md-3">
+      <label class="form-label">Delivery</label>
+      {{ invite_form.delivery }}
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Email</label>
+      {{ invite_form.email }}
+      {{ invite_form.email.errors }}
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Phone</label>
+      {{ invite_form.phone }}
+      <div class="form-text">Use E.164, e.g. +15551234567</div>
+      {{ invite_form.phone.errors }}
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Role</label>
+      {{ invite_form.role }}
+    </div>
+  </div>
+
+  <button class="btn btn-primary">Send Invite</button>
+</form>

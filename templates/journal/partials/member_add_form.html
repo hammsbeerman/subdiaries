@@ -1,0 +1,65 @@
+<form id="member-add-form" hx-post="{% url 'journal:member_add' %}"
+      hx-target="#members-table" hx-swap="outerHTML" hx-disable
+      hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'
+      hx-boost="false" hx-select-oob="#member-add-form">
+
+  {% csrf_token %}
+  <div class="row g-2 mb-2">
+    <div class="col-md-3">
+      <label class="form-label">Username</label>
+      {{ form.username }}
+      {{ form.username.errors }}
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Email</label>
+      {{ form.email }}
+      {{ form.email.errors }}
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Role</label>
+      {{ form.role }}
+      {{ form.role.errors }}
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Password</label>
+      {{ form.password }}
+      <div class="form-text">Blank = auto-generate</div>
+      {{ form.password.errors }}
+    </div>
+  </div>
+
+  <button class="btn btn-primary">Add User</button>
+</form>
+
+<!-- OOB target to replace the form area after submit -->
+<div id="member-add-form" hx-swap-oob="true">
+  <form id="member-add-form" hx-post="{% url 'journal:member_add' %}"
+        hx-target="#members-table" hx-swap="outerHTML"
+        hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'>
+    {% csrf_token %}
+    <div class="row g-2 mb-2">
+      <div class="col-md-3">
+        <label class="form-label">Username</label>
+        {{ form.username }}
+        {{ form.username.errors }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Email</label>
+        {{ form.email }}
+        {{ form.email.errors }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Role</label>
+        {{ form.role }}
+        {{ form.role.errors }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Password</label>
+        {{ form.password }}
+        <div class="form-text">Blank = auto-generate</div>
+        {{ form.password.errors }}
+      </div>
+    </div>
+    <button class="btn btn-primary">Add User</button>
+  </form>
+</div>

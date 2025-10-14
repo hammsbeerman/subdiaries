@@ -1,0 +1,23 @@
+<table class="table table-sm align-middle" id="members-table">
+  <tr><th>User</th><th>Role</th><th></th></tr>
+  {% for m in memberships %}
+    <tr>
+      <td>{{ m.user.get_username }}</td>
+      <td>{{ m.role }}</td>
+      <td>
+        <form hx-post="{% url 'journal:member_set_role' m.pk %}" 
+              hx-target="#members-table" hx-swap="outerHTML" class="d-flex gap-2">
+          {% csrf_token %}
+          <select name="role" class="form-select form-select-sm" style="max-width:160px">
+            {% for val,label in ROLE_CHOICES %}
+              <option value="{{ val }}" {% if val == m.role %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <button class="btn btn-primary btn-sm">Update</button>
+        </form>
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="3"><em>No members.</em></td></tr>
+  {% endfor %}
+</table>

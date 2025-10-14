@@ -1,0 +1,14 @@
+<div class="card mb-3">
+  <div class="card-body">
+    <h5 class="card-title text-accent">Step 3 · Write your first entry</h5>
+    <form hx-post="{% url 'journal:tutorial_step' 3 %}" hx-target="#tutorial-steps" hx-swap="innerHTML" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="mb-3"><label class="form-label">Title</label>{{ form.title }} {{ form.title.errors }}</div>
+      <div class="mb-3"><label class="form-label">Body</label>{{ form.body }} {{ form.body.errors }}</div>
+      <div class="mb-3"><label class="form-label">Tabs</label>{{ form.tabs }} {{ form.tabs.errors }}</div>
+      <div class="mb-3"><label class="form-label">Images</label>{{ form.images }} {{ form.images.errors }}</div>
+      <button class="btn btn-primary" name="action" value="save">Save Draft & Continue</button>
+      <button class="btn btn-secondary ms-2" name="action" value="skip">Skip</button>
+    </form>
+  </div>
+</div>

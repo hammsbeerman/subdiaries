@@ -1,0 +1,25 @@
+<div class="card mb-3">
+  <div class="card-body">
+    <h5 class="card-title text-accent">Step 4 · Invite a teammate (optional)</h5>
+    <form hx-post="{% url 'journal:tutorial_step' 4 %}" hx-target="#tutorial-steps" hx-swap="innerHTML">
+      {% csrf_token %}
+      <div class="row g-2">
+        <div class="col-md-3">
+          <label class="form-label">Delivery</label>{{ form.delivery }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Email</label>{{ form.email }} {{ form.email.errors }}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Phone</label>{{ form.phone }} {{ form.phone.errors }}
+          <div class="form-text">E.164 e.g. +15551234567</div>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Role</label>{{ form.role }}
+        </div>
+      </div>
+      <button class="btn btn-primary mt-3" name="action" value="save">Send Invite & Continue</button>
+      <button class="btn btn-secondary mt-3 ms-2" name="action" value="skip">Skip</button>
+    </form>
+  </div>
+</div>

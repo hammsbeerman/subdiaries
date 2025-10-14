@@ -1,0 +1,68 @@
+# --- OS junk ---
+.DS_Store
+Thumbs.db
+
+# --- Python / Django ---
+__pycache__/
+*.py[cod]
+*.so
+*.pyd
+*.pyo
+*.egg-info/
+.eggs/
+.Python
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.pytype/
+.tox/
+.cache/
+
+# Virtualenv (keep venv out of git)
+.venv/
+venv/
+ENV/
+
+# Local settings & secrets
+.env
+*.env
+*.env.*
+
+# SQLite (dev only; don’t ignore if you intentionally version it)
+db.sqlite3
+db.sqlite3-journal
+
+# Static & media (collected/generated at deploy or runtime)
+staticfiles/
+static/
+media/
+
+# Logs & runtime
+*.log
+logs/
+gunicorn*.pid
+celerybeat-schedule
+celerybeat.pid
+
+# IDE / Editor
+.vscode/
+.idea/
+*.iml
+
+# Node / build outputs (if you have frontend bits)
+node_modules/
+dist/
+build/
+*.map
+
+# Coverage & profiling
+.prof
+.profraw
+
+# Mac/Linux trash
+.Trashes
+*.swp
+*.swo
+

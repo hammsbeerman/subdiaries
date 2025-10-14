@@ -1,0 +1,16 @@
+<div class="card mb-3">
+  <div class="card-body">
+    <h5 class="card-title text-accent">All set!</h5>
+    <ul class="mb-3">
+      <li>Custom tab created</li>
+      <li>First entry drafted</li>
+      <li>Invite sent (if you chose to)</li>
+    </ul>
+    <form hx-post="{% url 'journal:tutorial_step' 5 %}" hx-target="#tutorial-steps" hx-swap="innerHTML">
+      {% csrf_token %}
+      <button class="btn btn-success" name="action" value="save">Finish</button>
+      <button class="btn btn-secondary ms-2" name="action" value="skip">Dismiss</button>
+      <a class="btn btn-outline-light ms-2" href="{% url 'journal:index' %}">Go to Journal</a>
+    </form>
+  </div>
+</div>

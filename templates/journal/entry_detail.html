@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block content %}
+<h3>{{ entry.title }}</h3>
+<p>{{ entry.body|linebreaks }}</p>
+<p>Tabs: {% for t in entry.tabs.all %}{{ t.name }}{% if not forloop.last %}, {% endif %}{% empty %}None{% endfor %}</p>
+<div>
+  {% for img in entry.images.all %}<img src="{{ img.image.url }}" style="max-width:200px;margin:6px">{% empty %}<em>No images</em>{% endfor %}
+</div>
+<a class="btn btn-secondary" href="{% url 'journal:entry_edit' entry.pk %}">Edit</a>
+{% endblock %}

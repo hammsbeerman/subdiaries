@@ -1,0 +1,19 @@
+<table class="table table-sm" id="drafts-table">
+  <tr><th>Title</th><th>Tabs</th><th></th></tr>
+  {% for e in entries %}
+    <tr>
+      <td>{{ e.title }}</td>
+      <td>{% for t in e.tabs.all %}{{ t.name }}{% if not forloop.last %}, {% endif %}{% empty %}<em>None</em>{% endfor %}</td>
+      <td class="text-nowrap">
+        <form hx-post="{% url 'journal:entry_publish' e.pk %}" hx-target="#drafts-table" hx-swap="outerHTML" class="d-inline">
+          {% csrf_token %}<button class="btn btn-primary btn-sm">Submit</button>
+        </form>
+        <form hx-post="{% url 'journal:entry_delete' e.pk %}" hx-target="#drafts-table" hx-swap="outerHTML" class="d-inline ms-1">
+          {% csrf_token %}<button class="btn btn-outline-danger btn-sm">Delete</button>
+        </form>
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="3"><em>No drafts.</em></td></tr>
+  {% endfor %}
+</table>

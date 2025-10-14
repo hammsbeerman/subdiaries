@@ -1,0 +1,23 @@
+<div class="card mb-3">
+  <div class="card-body">
+    <h5 class="card-title text-accent">Step 2 · Create a custom tab</h5>
+    <form hx-post="{% url 'journal:tutorial_step' 2 %}" hx-target="#tutorial-steps" hx-swap="innerHTML">
+      {% csrf_token %}
+      <div class="row g-2">
+        <div class="col-md-6">
+          <label class="form-label">Tab name</label>
+          {{ form.name }}
+          {{ form.name.errors }}
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+          <div class="form-check">
+            {{ form.enabled }}
+            <label class="form-check-label" for="{{ form.enabled.id_for_label }}">Enabled</label>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary mt-3" name="action" value="save">Create & Continue</button>
+      <button class="btn btn-secondary mt-3 ms-2" name="action" value="skip">Skip</button>
+    </form>
+  </div>
+</div>

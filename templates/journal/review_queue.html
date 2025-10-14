@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block content %}
+<h3>Review Queue</h3>
+<div id="review-table"
+     hx-get="{% url 'journal:review_queue' %}"
+     hx-trigger="load"
+     hx-swap="outerHTML">Loading…</div>
+{% endblock %}
