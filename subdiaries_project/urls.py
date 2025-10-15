@@ -3,6 +3,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import JsonResponse
+from journal import views_diag as diag
 
 def health(request):
     import os
@@ -10,9 +11,12 @@ def health(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("", include("journal.urls")),
+    path("diag/secure/", diag.secure_probe, name="secure-probe"),
     path("", include(("journal.urls","journal"), namespace="journal")),
     path("health/", health, name="health"),
     path("accounts/", include("django.contrib.auth.urls")),  # <-- adds 'login', 'logout', etc.
+
 ]
 
 if settings.DEBUG:
