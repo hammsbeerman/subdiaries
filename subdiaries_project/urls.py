@@ -1,25 +1,37 @@
 from django.contrib import admin
 from django.urls import path, include
-from django.conf import settings
-from django.conf.urls.static import static
+from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-#from journal import views_diag as diag
-from journal import views_diag
+from django.conf import settings
 
-def health(request):
-    import os
-    return JsonResponse({"ok": True, "env": os.environ.get("DJANGO_SETTINGS_MODULE")})
+@csrf_exempt
+def secure_probe(request):
+    m = request.META
+    return JsonResponse({
+        "is_secure": request.is_secure(),
+        "scheme": request.scheme,
+        "headers": {
+            "Host": m.get("HTTP_HOST"),
+            "X-Forwarded-Proto": m.get("HTTP_X_FORWARDED_PROTO"),
+            "X-Forwarded-Host": m.get("HTTP_X_FORWARDED_HOST"),
+            "X-Forwarded-Port": m.get("HTTP_X_FORWARDED_PORT"),
+            "Forwarded": m.get("HTTP_FORWARDED"),
+        },
+        "cookies": {
+            "csrftoken_present": "csrftoken" in request.COOKIES,
+            "session_present": settings.SESSION_COOKIE_NAME in request.COOKIES,
+        },
+        "settings": {
+            "SESSION_COOKIE_SECURE": settings.SESSION_COOKIE_SECURE,
+            "CSRF_COOKIE_SECURE": settings.CSRF_COOKIE_SECURE,
+            "CSRF_TRUSTED_ORIGINS": settings.CSRF_TRUSTED_ORIGINS,
+            "SECURE_PROXY_SSL_HEADER": settings.SECURE_PROXY_SSL_HEADER,
+            "USE_X_FORWARDED_HOST": getattr(settings, "USE_X_FORWARDED_HOST", False),
+        }
+    }, json_dumps_params={"indent": 2})
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
     path("", include("journal.urls")),
-    path("diag/secure/", diag.secure_probe, name="secure-probe"),
-    path("", include(("journal.urls","journal"), namespace="journal")),
-    path("health/", health, name="health"),
-    path("accounts/", include("django.contrib.auth.urls")),  # <-- adds 'login', 'logout', etc.
-
+    path("diag/secure/", secure_probe, name="secure-probe"),
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
