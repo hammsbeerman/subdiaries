@@ -1,6 +1,10 @@
 
 from django.urls import path
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from . import views
+
+def ok(_): return HttpResponse("OK", content_type="text/plain")
 
 urlpatterns = [
     path("", views.index, name="index"),

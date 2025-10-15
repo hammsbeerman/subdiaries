@@ -1,13 +1,26 @@
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.auth.decorators import login_required
 from django.conf import settings
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 import os
 
 # Always-available lightweight health check
 def healthz(_request):
     return HttpResponse("ok\n", content_type="text/plain")
+
+def root_safe(request):
+    try:
+        if not request.user.is_authenticated:
+            return HttpResponseRedirect("/accounts/login/?next=/")
+        # minimal, no templates/context
+        return HttpResponse("OK — logged in", content_type="text/plain")
+    except Exception as e:
+        import io, traceback
+        buf = io.StringIO()
+        traceback.print_exc(file=buf)
+        return HttpResponse("ERROR\n" + buf.getvalue(), content_type="text/plain", status=500)
 
 # --- Diagnostics (enabled only in DEBUG or via ENABLE_DIAG_ROUTES=1) ---
 @csrf_exempt
@@ -43,6 +56,7 @@ def csrf_ping(_request):
     return HttpResponse("ok", content_type="text/plain")
 
 urlpatterns = [
+    path("", root_safe, name="root-safe"),
     path("admin/", admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
     path("", include("journal.urls")),
