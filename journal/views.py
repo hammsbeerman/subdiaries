@@ -1,7 +1,7 @@
 
 # journal/views.py
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import get_user_model, login
+from django.contrib.auth import get_user_model, login, logout
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils.crypto import get_random_string
@@ -10,7 +10,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.cache import never_cache
 from django.template.loader import render_to_string
 from django.urls import reverse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
@@ -600,3 +600,10 @@ def tutorial_disable(request):
     p.save(update_fields=["onboarding_enabled"])
     messages.info(request, "Tutorial disabled.")
     return redirect("journal:index")
+
+@require_http_methods(["GET", "POST"])
+def logout_then_login(request):
+    logout(request)
+    # respect ?next=... if present, else go to login
+    next_url = request.GET.get("next") or request.POST.get("next") or "/accounts/login/"
+    return redirect(next_url)

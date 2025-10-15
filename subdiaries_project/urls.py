@@ -3,6 +3,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+from journal.views import logout_then_login
 import os
 import io, traceback
 
@@ -61,6 +62,7 @@ urlpatterns = [
     #path("", root_safe, name="root-safe"),                  # temporary safe “/”
     path("", include("journal.urls")),
     path("admin/", admin.site.urls),
+    path("accounts/logout/", logout_then_login, name="logout"),
     path("accounts/", include("django.contrib.auth.urls")),
     path("healthz", healthz, name="healthz"),
 ]
