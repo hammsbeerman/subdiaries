@@ -1,0 +1,100 @@
+:root{
+  --bg:#0b0b0f; --bg-2:#121218; --card:#171723; --text:#e9e9ee; --muted:#a7a7b3;
+  --accent:#ff2e88; --accent-2:#ff6aa9; --border:#2a2a38; --focus:#7d3cff;
+}
+html,body{background:var(--bg); color:var(--text);}
+a{color:var(--accent);} a:hover{color:var(--accent-2);}
+.navbar{background:linear-gradient(180deg,#101019,#0b0b0f);}
+.navbar .nav-link,.navbar .navbar-brand{color:var(--text)!important; opacity:.9}
+.navbar .nav-link:hover{opacity:1}
+.container{max-width:1100px;}
+.card{background:var(--card); border:1px solid var(--border); box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.form-control,.form-select,.form-check-input{
+  background:var(--bg-2); color:var(--text); border:1px solid var(--border);
+}
+.form-control:focus,.form-select:focus{border-color:var(--focus); box-shadow:0 0 0 .2rem rgba(125,60,255,.15)}
+.btn-primary{background:var(--accent); border-color:var(--accent)}
+.btn-primary:hover{background:var(--accent-2); border-color:var(--accent-2)}
+.btn-secondary{background:#2a2a38; border-color:#2a2a38}
+.badge.bg-accent{background:var(--accent)}
+hr{border-color:var(--border)}
+.alert{background:rgba(255,46,136,.08); border-color:var(--accent); color:var(--text)}
+.table{color:var(--text)}
+.table>:not(caption)>*>*{background:transparent; border-color:var(--border)}
+/* Tabs pills */
+.nav-pills .nav-link{background:var(--bg-2); color:var(--text); border:1px solid var(--border)}
+.nav-pills .nav-link.active{background:var(--accent); border-color:var(--accent)}
+/* Images grid */
+.img-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px}
+.img-grid img{width:100%; height:140px; object-fit:cover; border-radius:8px}
+/* Subtle separators */
+.section{padding:16px; background:var(--bg-2); border:1px solid var(--border); border-radius:12px}
+/* Scrollbar (webkit) */
+*::-webkit-scrollbar{height:10px;width:10px}
+*::-webkit-scrollbar-thumb{background:#2a2a38;border-radius:8px}
+/* Dark surface for page content */
+.content-surface{
+  background: var(--card);           /* darker panel */
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  color: var(--text);                /* white body text */
+}
+/* Headings pink inside content */
+.content-surface h1,
+.content-surface h2,
+.content-surface h3,
+.content-surface h4,
+.content-surface h5,
+.content-surface h6{
+  color: var(--accent);              /* pink */
+}
+/* Ensure all typical text in the surface is white */
+.content-surface p,
+.content-surface label,
+.content-surface .form-text,
+.content-surface li,
+.content-surface td, .content-surface th{
+  color: var(--text);
+}
+/* Inputs still dark */
+.content-surface .form-control,
+.content-surface .form-select,
+.content-surface .form-check-input{
+  background: var(--bg-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+/* Make headings and text match theme */
+h1,h2,h3,h4,h5,h6{ color: var(--text); }
+p, label, small, .form-text { color: var(--muted); }
+/* Remove any page-edge white strip */
+html, body, .page-bg {
+  background-color: var(--bg) !important;
+  background: var(--bg) !important;
+}
+
+/* Tab form: make name + checkbox pop */
+.content-surface .form-label { color: var(--accent); }             /* pink labels */
+.content-surface .form-control { color: var(--text) !important; }   /* input text white */
+.content-surface .form-control::placeholder { color: var(--muted); }
+
+.content-surface .form-check-label { color: var(--text) !important; } /* checkbox label white */
+
+.content-surface .form-check-input {
+  background-color: var(--bg-2);
+  border: 1px solid var(--border);
+}
+.content-surface .form-check-input:focus {
+  border-color: var(--focus);
+  box-shadow: 0 0 0 .2rem rgba(125,60,255,.25);
+}
+.content-surface .form-check-input:checked {
+  background-color: var(--accent);  /* pink check */
+  border-color: var(--accent);
+}
+
+.content-surface input.form-control { color: var(--text); background: var(--bg-2); }
+
+.text-accent { color: var(--accent); }
+.card { background: var(--card); border:1px solid var(--border); }
