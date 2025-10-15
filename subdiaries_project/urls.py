@@ -3,7 +3,8 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import JsonResponse
-from journal import views_diag as diag
+#from journal import views_diag as diag
+from journal import views_diag
 
 def health(request):
     import os
