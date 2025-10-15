@@ -118,7 +118,7 @@ USE_TZ = True
 
 # ── Static & media ─────────────────────────────────────────────────────────────
 STATIC_URL = "/static/"
-STATIC_ROOT = "/srv/subdiaries/static"     # <-- match Nginx alias
+STATIC_ROOT = str(BASE_DIR / "staticfiles")     # <-- match Nginx alias
 STATICFILES_DIRS = [BASE_DIR / "static"]   # source assets (only if this folder exists)
 
 # ensure default finders are on
