@@ -19,7 +19,7 @@ from .models import Entry, EntryImage, Tab, Membership, Organization, Invite, Us
 from .forms import EntryForm, MemberAddForm, InviteForm, AcceptInviteForm, TabForm, TabRenameForm, ProfileMiniForm
 from django import forms
 from django.template.loader import render_to_string
-from .utils import send_invite_email, send_invite_sms
+from .utils import send_invite_email, send_invite_sms, get_user_org
 
 @login_required
 @ensure_csrf_cookie
@@ -39,27 +39,23 @@ def site_base_url(request):
     scheme = "https" if request.is_secure() else "http"
     return f"{scheme}://{request.get_host()}"
 
-def get_user_org(user):
-    m = Membership.objects.filter(user=user).select_related("org").first()
-    return m.org if m else None
+# def get_user_org(user):
+#     m = Membership.objects.select_related("org").filter(user=request.user).first()
+#     org = m.org if m else None
 
 @login_required
 def index(request):
-    org = get_user_org(request.user)
+    org = get_user_org(request.user)   # <-- pass user
     if not org:
-        # no org yet → send to tutorial (or swap to an empty-state page)
         return redirect("journal:tutorial")
 
     tabs = Tab.objects.filter(org=org, enabled=True)
-    entries = (
-        Entry.objects
-        .filter(org=org, status=Entry.Status.APPROVED)
-        .prefetch_related("tabs", "images")
-        .select_related("author")
-        .order_by("-created_at")  # optional: newest first
-    )
-    #ctx = {"org": org, "tabs": tabs, "entries": entries}
-    return render(request, "journal/index.html", ctx)
+    entries = (Entry.objects
+               .filter(org=org, status=Entry.Status.APPROVED)
+               .prefetch_related("tabs", "images")
+               .select_related("author")
+               .order_by("-created_at"))
+    return render(request, "journal/index.html", {"org": org, "tabs": tabs, "entries": entries})
 
 @login_required
 @transaction.atomic

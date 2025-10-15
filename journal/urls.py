@@ -6,6 +6,8 @@ from . import views
 
 def ok(_): return HttpResponse("OK", content_type="text/plain")
 
+app_name = "journal"
+
 urlpatterns = [
     path("", views.index, name="index"),
     path("entry/new/", views.entry_create, name="entry_create"),

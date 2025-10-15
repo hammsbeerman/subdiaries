@@ -6,7 +6,7 @@ def org_and_role(request):
     if not getattr(user, "is_authenticated", False):
         return ctx
 
-    org = Organization.objects.filter(membership__user=user).first()
+    org = Organization.objects.filter(memberships__user=user).first()
     role = None
     if org:
         role = (Membership.objects
