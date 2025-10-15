@@ -1,6 +1,7 @@
 from pathlib import Path
 import os
 from dotenv import load_dotenv, find_dotenv
+from django.urls import reverse_lazy
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
 PROJECT_DIR = Path(__file__).resolve().parent          # …/subdiaries_project
@@ -125,7 +126,7 @@ MEDIA_ROOT = os.getenv("MEDIA_ROOT", str(BASE_DIR / "media") if DEBUG else "/srv
 
 # ── Auth redirects ─────────────────────────────────────────────────────────────
 LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "/ok/"
+LOGIN_REDIRECT_URL = reverse_lazy("journal:profile")
 LOGOUT_REDIRECT_URL = "/"
 
 # ── Email ──────────────────────────────────────────────────────────────────────

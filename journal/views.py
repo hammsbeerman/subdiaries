@@ -251,8 +251,7 @@ def plans(request):
 
 @login_required
 def profile(request):
-    # Minimal placeholder; wire custom fields later
-    return render(request, "journal/profile.html", {})
+    return render(request, "journal/profile.html", {"user": request.user})
 
 @login_required
 @require_POST
