@@ -125,7 +125,7 @@ MEDIA_ROOT = os.getenv("MEDIA_ROOT", str(BASE_DIR / "media") if DEBUG else "/srv
 
 # ── Auth redirects ─────────────────────────────────────────────────────────────
 LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "/ok/"
+LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
 # ── Email ──────────────────────────────────────────────────────────────────────

@@ -38,13 +38,20 @@ def get_user_org(user):
 @login_required
 def index(request):
     org = get_user_org(request.user)
+    if not org:
+        # no org yet → send to tutorial (or swap to an empty-state page)
+        return redirect("journal:tutorial")
+
     tabs = Tab.objects.filter(org=org, enabled=True)
     entries = (
-        Entry.objects.filter(org=org, status=Entry.Status.APPROVED)
+        Entry.objects
+        .filter(org=org, status=Entry.Status.APPROVED)
         .prefetch_related("tabs", "images")
         .select_related("author")
+        .order_by("-created_at")  # optional: newest first
     )
-    return render(request, "journal/index.html", {"tabs": tabs, "entries": entries})
+    ctx = {"org": org, "tabs": tabs, "entries": entries}
+    return render(request, "journal/index.html", ctx)
 
 @login_required
 @transaction.atomic

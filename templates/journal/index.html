@@ -1,6 +1,12 @@
 
 {% extends 'base.html' %}
 {% block content %}
+{% if org %}
+  <h1>{{ org.name }}</h1>
+  {# … rest of page … #}
+{% else %}
+  <p>No org yet.</p>
+{% endif %}
 <h3>Approved Entries</h3>
 <div class="mb-3">
   {% for t in tabs %}<span class="badge text-bg-secondary me-1">{{ t.name }}</span>{% endfor %}
