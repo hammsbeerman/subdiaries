@@ -1,11 +1,8 @@
 
 from django.urls import path
 from . import views
-from journal import views_diag as diag
 
 urlpatterns = [
-    path("", include("journal.urls")),
-    path("diag/secure/", diag.secure_probe, name="secure-probe"),
     path("", views.index, name="index"),
     path("entry/new/", views.entry_create, name="entry_create"),
 
