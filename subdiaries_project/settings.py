@@ -121,6 +121,12 @@ STATIC_URL = "/static/"
 STATIC_ROOT = "/srv/subdiaries/static"     # <-- match Nginx alias
 STATICFILES_DIRS = [BASE_DIR / "static"]   # source assets (only if this folder exists)
 
+# ensure default finders are on
+STATICFILES_FINDERS = [
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+]
+
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.getenv("MEDIA_ROOT", str(BASE_DIR / "media") if DEBUG else "/srv/subdiaries/media")
 
