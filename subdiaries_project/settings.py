@@ -118,8 +118,8 @@ USE_TZ = True
 
 # ── Static & media ─────────────────────────────────────────────────────────────
 STATIC_URL = "/static/"
-STATIC_ROOT = os.getenv("STATIC_ROOT", str(BASE_DIR / "staticfiles"))
-STATICFILES_DIRS = [p for p in [BASE_DIR / "static"] if p.exists()]
+STATIC_ROOT = "/srv/subdiaries/static"     # <-- match Nginx alias
+STATICFILES_DIRS = [BASE_DIR / "static"]   # source assets (only if this folder exists)
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.getenv("MEDIA_ROOT", str(BASE_DIR / "media") if DEBUG else "/srv/subdiaries/media")
