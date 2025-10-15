@@ -5,7 +5,9 @@ from django.contrib.auth import get_user_model, login
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils.crypto import get_random_string
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.cache import never_cache
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_POST
@@ -18,6 +20,12 @@ from .forms import EntryForm, MemberAddForm, InviteForm, AcceptInviteForm, TabFo
 from django import forms
 from django.template.loader import render_to_string
 from .utils import send_invite_email, send_invite_sms
+
+@login_required
+@ensure_csrf_cookie
+@never_cache
+def ok(request):
+    return HttpResponse("OK", content_type="text/plain")
 
 def is_htmx(request):
     return request.headers.get("HX-Request") == "true"
@@ -50,7 +58,7 @@ def index(request):
         .select_related("author")
         .order_by("-created_at")  # optional: newest first
     )
-    ctx = {"org": org, "tabs": tabs, "entries": entries}
+    #ctx = {"org": org, "tabs": tabs, "entries": entries}
     return render(request, "journal/index.html", ctx)
 
 @login_required

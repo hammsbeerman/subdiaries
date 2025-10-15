@@ -10,15 +10,15 @@ import io, traceback
 def healthz(_request):
     return HttpResponse("ok\n", content_type="text/plain")
 
-def root_safe(request):
-    try:
-        if not request.user.is_authenticated:
-            return HttpResponseRedirect("/accounts/login/?next=/")
-        return HttpResponse("OK — logged in", content_type="text/plain")
-    except Exception:
-        buf = io.StringIO()
-        traceback.print_exc(file=buf)
-        return HttpResponse("ERROR\n" + buf.getvalue(), content_type="text/plain", status=500)
+# def root_safe(request):
+#     try:
+#         if not request.user.is_authenticated:
+#             return HttpResponseRedirect("/accounts/login/?next=/")
+#         return HttpResponse("OK — logged in", content_type="text/plain")
+#     except Exception:
+#         buf = io.StringIO()
+#         traceback.print_exc(file=buf)
+#         return HttpResponse("ERROR\n" + buf.getvalue(), content_type="text/plain", status=500)
 
 # --- Diagnostics (opt-in via DEBUG or ENABLE_DIAG_ROUTES) ---------------------
 @csrf_exempt
@@ -58,10 +58,10 @@ def csrf_ping(_request):
 
 # --- URL patterns -------------------------------------------------------------
 urlpatterns = [
-    path("", root_safe, name="root-safe"),                  # temporary safe “/”
+    #path("", root_safe, name="root-safe"),                  # temporary safe “/”
+    path("", include("journal.urls")),
     path("admin/", admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
-    path("", include("journal.urls")),                      # everything else
     path("healthz", healthz, name="healthz"),
 ]
 
