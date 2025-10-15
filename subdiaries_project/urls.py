@@ -44,6 +44,7 @@ def csrf_ping(_request):
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("accounts/", include("django.contrib.auth.urls")),
     path("", include("journal.urls")),
     path("healthz", healthz, name="healthz"),
 ]
