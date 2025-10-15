@@ -44,3 +44,5 @@ urlpatterns = [
     # profile
     path("profile/", views.profile, name="profile"),
 ]
+
+urlpatterns += [ path("ok/", login_required(ok), name="ok") ]
