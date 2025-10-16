@@ -98,3 +98,22 @@ html, body, .page-bg {
 
 .text-accent { color: var(--accent); }
 .card { background: var(--card); border:1px solid var(--border); }
+
+/* Members table tweaks */
+.members-table td, .members-table th { vertical-align: middle; }
+.members-email { max-width: 340px; }              /* keeps layout tidy */
+.members-email .text-nowrap { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.table-dark-subtle { background: #1a1f26; }       /* header contrast in Nocturne */
+
+.invite-form .form-text { color: #9aa4af; }
+.btn-outline-light { --bs-btn-color:#e7ecef; --bs-btn-border-color:#6c757d; }
+
+/* Simple icon placeholders; replace with real SVGs or a sprite later */
+.icon-github::before   { content: ""; }  /* swap to real SVG/CSS */
+.icon-linkedin::before { content: ""; }
+.icon-instagram::before{ content: ""; }
+.icon-youtube::before  { content: ""; }
+.icon-facebook::before { content: ""; }
+.icon-tiktok::before   { content: "♪"; }
+.icon-x::before        { content: "𝕏"; }
+.icon-other::before    { content: "🔗"; }

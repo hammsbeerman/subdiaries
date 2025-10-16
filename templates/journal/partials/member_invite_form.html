@@ -1,31 +1,97 @@
-<form id="member-invite-form"
-      hx-post="{% url 'journal:member_invite' %}"
-      hx-target="#members-table"
-      hx-swap="outerHTML"
-      hx-select-oob="#member-invite-form,#invite-link">
-  {% csrf_token %}
-
-  <div class="row g-2 mb-2">
-    <div class="col-md-3">
-      <label class="form-label">Delivery</label>
-      {{ invite_form.delivery }}
-    </div>
-    <div class="col-md-4">
-      <label class="form-label">Email</label>
-      {{ invite_form.email }}
-      {{ invite_form.email.errors }}
-    </div>
-    <div class="col-md-3">
-      <label class="form-label">Phone</label>
-      {{ invite_form.phone }}
-      <div class="form-text">Use E.164, e.g. +15551234567</div>
-      {{ invite_form.phone.errors }}
-    </div>
-    <div class="col-md-2">
-      <label class="form-label">Role</label>
-      {{ invite_form.role }}
+{% load static %}
+<div class="card shadow-sm">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <div>
+      <div class="fw-semibold">Invite a member</div>
+      <small class="text-body-secondary">Send an invite via email or SMS and pick a role.</small>
     </div>
   </div>
 
-  <button class="btn btn-primary">Send Invite</button>
-</form>
+  <div class="card-body">
+    <div id="invite-result"></div>
+
+    <form
+      hx-post="{% url 'journal:member_invite' %}"
+      hx-target="#invite-result"
+      hx-swap="innerHTML"
+      hx-indicator="#invite-indicator"
+      class="invite-form"
+    >
+      <!-- Contact method -->
+      <div class="mb-3">
+        <div class="btn-group btn-group-sm mb-2" role="group" aria-label="Invite method">
+          <input type="radio" class="btn-check" name="method" id="invite-email" value="email" checked>
+          <label class="btn btn-outline-light" for="invite-email">Email</label>
+          <input type="radio" class="btn-check" name="method" id="invite-sms" value="sms">
+          <label class="btn btn-outline-light" for="invite-sms">SMS</label>
+        </div>
+
+        <div id="invite-email-group">
+          <label class="form-label mb-1">Email address</label>
+          <input type="email" name="email" class="form-control" placeholder="name@example.com" autocomplete="off">
+          <div class="form-text">If the user already exists, they’ll be linked to this org.</div>
+        </div>
+
+        <div id="invite-sms-group" class="d-none">
+          <label class="form-label mb-1">Mobile number</label>
+          <input type="tel" name="phone" class="form-control" placeholder="+1 555 123 4567" autocomplete="off">
+          <div class="form-text">Use E.164 format (e.g. +15551234567).</div>
+        </div>
+      </div>
+
+      <!-- Role -->
+      <div class="mb-3">
+        <label class="form-label mb-1">Role</label>
+        <select name="role" class="form-select">
+          {% for value,label in role_choices %}
+            <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+        <div class="form-text">
+          <strong>Moderator</strong> can review; <strong>Author</strong> can submit; <strong>Sub-author</strong> limited.
+        </div>
+      </div>
+
+      <!-- Optional message -->
+      <div class="mb-3">
+        <label class="form-label mb-1">Message (optional)</label>
+        <textarea name="message" rows="2" class="form-control" placeholder="Add a short note…"></textarea>
+      </div>
+
+      <div class="d-flex align-items-center gap-3">
+        <button type="submit" class="btn btn-primary">
+          Send invite
+        </button>
+        <div id="invite-indicator" class="htmx-indicator small text-body-secondary">Sending…</div>
+      </div>
+    </form>
+  </div>
+  <!-- success example -->
+      <div class="alert alert-success py-2 px-3 mb-3">
+        Invitation sent to <strong>{{ target_display }}</strong>.
+      </div>
+
+      <!-- error example -->
+      <div class="alert alert-danger py-2 px-3 mb-3">
+        {{ error_message }}
+      </div>
+      </div>
+
+<script>
+  // tiny toggle between email/SMS without extra deps
+  (function () {
+    const emailRadio = document.getElementById('invite-email');
+    const smsRadio   = document.getElementById('invite-sms');
+    const emailGrp   = document.getElementById('invite-email-group');
+    const smsGrp     = document.getElementById('invite-sms-group');
+
+    function sync() {
+      const useEmail = emailRadio.checked;
+      emailGrp.classList.toggle('d-none', !useEmail);
+      smsGrp.classList.toggle('d-none', useEmail);
+    }
+    emailRadio.addEventListener('change', sync);
+    smsRadio.addEventListener('change', sync);
+    sync();
+  })();
+</script>

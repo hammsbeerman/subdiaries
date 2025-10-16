@@ -1,0 +1,12 @@
+<div class="row g-2 align-items-start mb-2">
+  <div class="col-md-4">{{ form.label }}</div>
+  <div class="col-md-6">{{ form.value }}</div>
+  <div class="col-md-2 text-end">
+    {% if form.instance.pk %}
+      <label class="form-check form-switch mb-0">
+        {{ form.DELETE }} <span class="ms-1">Delete</span>
+      </label>
+    {% endif %}
+  </div>
+  {{ form.id }}
+</div>

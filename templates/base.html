@@ -1,5 +1,5 @@
 {% load static %}
-{% load static %}
+{% load can_manage %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -28,7 +28,15 @@
           <li class="nav-item"><a class="nav-link" href="{% url 'journal:drafts' %}">My Drafts</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'journal:tabs' %}">Tabs</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'journal:profile' %}">Profile</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'journal:profile_detail' %}">Profile</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'journal:tutorial' %}">Tutorial</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'journal:subusers' %}">My Subusers</a></li>
+          {# Review Queue only when desired #}
+            {% if show_review_queue %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'journal:review_queue' %}">Review Queue</a>
+              </li>
+            {% endif %}
           {% if is_moderator %}
             <li class="nav-item"><a class="nav-link" href="{% url 'journal:review_queue' %}">Review Queue</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'journal:members' %}">Org Members</a></li>

@@ -1,0 +1,16 @@
+<form hx-post="{% url 'journal:subuser_create' %}" hx-target="#members-tbody" hx-swap="outerHTML">
+  <div class="row g-2 align-items-end">
+    <div class="col-sm-4">
+      <label class="form-label">Name</label>
+      <input class="form-control" name="full_name" placeholder="Jane Doe">
+    </div>
+    <div class="col-sm-4">
+      <label class="form-label">Email</label>
+      <input class="form-control" type="email" name="email" placeholder="jane@example.com">
+    </div>
+    <div class="col-sm-2">
+      <label class="form-label d-block">&nbsp;</label>
+      <button class="btn btn-primary w-100" type="submit">Add subuser</button>
+    </div>
+  </div>
+</form>

@@ -31,3 +31,19 @@ def get_user_org(user):
             .order_by("id")
             .first())
     return m.org if m else None
+
+def is_htmx(request):
+    return request.headers.get("HX-Request") == "true"
+
+def user_is_moderator(user):
+    m = Membership.objects.filter(user=user).first()
+    return bool(m and str(m.role).lower() in {"moderator","admin","owner"})
+
+def can_manage_member(actor, membership):
+    if not actor.is_authenticated:
+        return False
+    # org-level managers
+    if user_is_moderator(actor):
+        return True
+    # parent can manage their own subusers
+    return membership.managed_by_id == actor.id

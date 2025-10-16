@@ -1,8 +1,14 @@
 from django.db import models
 from django.conf import settings  # <-- needed for AUTH_USER_MODEL
 from django.utils.text import slugify
+from django.core.validators import FileExtensionValidator
 from django.utils import timezone
 import secrets
+from django.db.models import JSONField  # works on MySQL 8+
+
+
+def profile_upload_path(instance, filename):
+    return f"profiles/{instance.user_id}/{filename}"
 
 def _unique_tab_slug(org, name):
     base = slugify(name) or "tab"
@@ -37,6 +43,10 @@ class Membership(models.Model):
     org  = models.ForeignKey(Organization, on_delete=models.CASCADE,
                              related_name="memberships", db_index=True)
     role = models.CharField(max_length=16, choices=Role.choices, db_index=True)
+    managed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT,
+        related_name="managed_memberships"
+    )
 
     class Meta:
         constraints = [
@@ -50,6 +60,7 @@ class Membership(models.Model):
 class UserProfile(models.Model):
     # Prefer AUTH_USER_MODEL everywhere for consistency
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
+    display_name = models.CharField(max_length=120, blank=True)
     parent = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
                                on_delete=models.SET_NULL, related_name="subusers")
     full_name = models.CharField(max_length=120, blank=True)
@@ -57,6 +68,38 @@ class UserProfile(models.Model):
     about = models.TextField(blank=True)
     onboarding_enabled = models.BooleanField(default=True)
     onboarding_step = models.PositiveSmallIntegerField(default=1)  # 1..5
+    about_me    = models.TextField(blank=True)
+    nicknames   = JSONField(default=list, blank=True)      # ["AJ","Coach"]
+    profile_pic = models.ImageField(
+        upload_to=profile_upload_path, blank=True, null=True,
+        validators=[FileExtensionValidator(["jpg","jpeg","png","webp"])],
+    )
+    # arbitrary custom fields (key/value/type)
+    custom_fields = JSONField(default=list, blank=True)    # [{"key":"Hobby","value":"Fishing","type":"text"}]
+
+    # visibility flags if you ever need (kept simple here)
+    # allow_manager_view = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.display_name or self.user.get_username()
+
+
+class ProfileImage(models.Model):
+    profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="images")
+    image   = models.ImageField(
+        upload_to=profile_upload_path,
+        validators=[FileExtensionValidator(["jpg","jpeg","png","webp"])],
+    )
+    caption = models.CharField(max_length=200, blank=True)
+    is_primary = models.BooleanField(default=False)
+    visible = models.BooleanField(default=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["-is_primary", "-id"]
+
+    def __str__(self):
+        return self.caption or self.image.name
     
 
 
@@ -183,3 +226,30 @@ class Invite(models.Model):
     def is_valid(self):
         return self.used_at is None and timezone.now() < self.expires_at
 
+class SocialLink(models.Model):
+    profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="socials")
+    platform = models.CharField(max_length=50)         # e.g. "Twitter"
+    handle = models.CharField(max_length=120, blank=True)
+    url = models.URLField(max_length=500)
+    visible = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["platform", "handle"]
+
+    def __str__(self):
+        return f"{self.platform}: {self.handle or self.url}"
+
+FIELD_KIND_CHOICES = [("text","Text"),("url","URL"),("date","Date"),("number","Number")]
+
+class CustomField(models.Model):
+    profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="custom_items", related_query_name="custom_item",)
+    label = models.CharField(max_length=120)
+    value = models.TextField(blank=True)
+    kind = models.CharField(max_length=20, choices=FIELD_KIND_CHOICES, default="text")
+    visible = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["label"]
+
+    def __str__(self):
+        return f"{self.label}: {self.value}"

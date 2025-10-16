@@ -15,11 +15,16 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
 from django.db import transaction
-from .models import Entry, EntryImage, Tab, Membership, Organization, Invite, UserProfile
-from .forms import EntryForm, MemberAddForm, InviteForm, AcceptInviteForm, TabForm, TabRenameForm, ProfileMiniForm
+from .models import Entry, EntryImage, Tab, Membership, Organization, Invite, UserProfile, SocialLink, ProfileImage, CustomField
+from .forms import EntryForm, MemberAddForm, InviteForm, AcceptInviteForm, TabForm, TabRenameForm, ProfileMiniForm, SubuserCreateForm, SocialLinkForm, UserProfileForm, SocialFormSet, ImageFormSet, CustomFieldItemForm as CustomFieldForm
 from django import forms
 from django.template.loader import render_to_string
-from .utils import send_invite_email, send_invite_sms, get_user_org
+from .utils import send_invite_email, send_invite_sms, get_user_org, is_htmx, user_is_moderator, can_manage_member
+from journal.constants import ROLE_CHOICES
+from journal.models import UserProfile
+from journal.permissions import can_view_profile, can_edit_profile
+
+U = get_user_model()
 
 @login_required
 @ensure_csrf_cookie
@@ -27,8 +32,7 @@ from .utils import send_invite_email, send_invite_sms, get_user_org
 def ok(request):
     return HttpResponse("OK", content_type="text/plain")
 
-def is_htmx(request):
-    return request.headers.get("HX-Request") == "true"
+
 
 def _get_profile(user):
     profile, _ = UserProfile.objects.get_or_create(user=user)
@@ -102,9 +106,7 @@ def entry_create(request):
 
     return render(request, "journal/entry_form.html", {"form": form})
 
-def user_is_moderator(user):
-    m = Membership.objects.filter(user=user).first()
-    return bool(m and str(m.role).lower() in {"moderator","admin","owner"})
+
 
 # ---------- Drafts (HTMX) ----------
 @login_required
@@ -212,16 +214,31 @@ ROLE_CHOICES = [("moderator","moderator"), ("author","author"), ("subauthor","su
 def members(request):
     if not user_is_moderator(request.user):
         return HttpResponse(status=403)
+
     org = get_user_org(request.user)
-    rows = Membership.objects.filter(org=org).select_related("user")
+
+    # Single source of truth: `members` (not rows/memberships)
+    members = (
+        Membership.objects
+        .filter(org=org)                      # <-- filter by org
+        .select_related("user", "org")
+        .order_by("user__first_name", "user__last_name", "user__username")
+    )
+
     form = MemberAddForm()
+
+    ctx = {
+        "org": org,
+        "members": members,                   # <-- consistent key
+        "role_choices": getattr(Membership, "Role", None).choices if hasattr(Membership, "Role") else ROLE_CHOICES,
+        "form": form,
+    }
+
     if is_htmx(request):
-        # return only the table for HTMX refresh
-        html = render_to_string("journal/partials/members_table.html",
-                                {"memberships": rows, "ROLE_CHOICES": ROLE_CHOICES}, request)
+        html = render_to_string("journal/partials/members_table.html", ctx, request=request)
         return HttpResponse(html)
-    return render(request, "journal/members.html",
-                  {"memberships": rows, "ROLE_CHOICES": ROLE_CHOICES, "form": form})
+
+    return render(request, "journal/members.html", ctx)
 
 @login_required
 @require_POST
@@ -607,3 +624,154 @@ def logout_then_login(request):
     # respect ?next=... if present, else go to login
     next_url = request.GET.get("next") or request.POST.get("next") or "/accounts/login/"
     return redirect(next_url)
+
+@login_required
+def subusers_list(request):
+    org = get_user_org(request.user)
+    # Org managers see all subauthors; otherwise show only the ones you manage
+    qs = (Membership.objects
+          .filter(org=org, role=Membership.Role.SUBAUTHOR)
+          .select_related("user", "org"))
+    if not user_is_moderator(request.user):
+        qs = qs.filter(managed_by=request.user)
+
+    ctx = {"org": org, "members": qs, "role_choices": Membership.Role.choices}
+    if is_htmx(request):
+        html = render_to_string("journal/partials/members_table.html", ctx, request=request)
+        return HttpResponse(html)
+    return render(request, "journal/members.html", ctx)  # reuse the table template section
+
+@login_required
+@transaction.atomic
+def subuser_create(request):
+    if request.method != "POST":
+        return HttpResponse(status=405)
+    org = get_user_org(request.user)
+    form = SubuserCreateForm(request.POST)
+    if not (user_is_moderator(request.user) or True):  # allow any user to create their own subusers
+        return HttpResponseForbidden()
+    if not form.is_valid():
+        html = render_to_string("journal/partials/form_errors.html", {"form": form}, request=request)
+        return HttpResponse(html, status=400)
+
+    full_name = form.cleaned_data.get("full_name") or ""
+    email = form.cleaned_data.get("email") or ""
+    role = Membership.Role.SUBAUTHOR
+
+    # Create (or reuse) a user record
+    user, created = U.objects.get_or_create(email=email or None, defaults={
+        "username": (email or f"sub_{request.user.id}_{U.objects.count()+1}")[:150],
+        "is_active": True,
+    })
+    # optional: split full_name into first/last
+    if full_name and created:
+        parts = full_name.split()
+        user.first_name = parts[0]
+        user.last_name = " ".join(parts[1:]) if len(parts) > 1 else ""
+        user.save()
+
+    mem, _ = Membership.objects.get_or_create(
+        org=org, user=user,
+        defaults={"role": role, "managed_by": request.user}
+    )
+    if mem.managed_by_id is None:
+        mem.managed_by = request.user
+        mem.save(update_fields=["managed_by"])
+
+    # return refreshed table for HTMX
+    return subusers_list(request)
+
+@login_required
+def profile_detail(request, user_id=None):
+    subject = request.user if not user_id else get_object_or_404(UserProfile, user__id=user_id).user
+    profile = getattr(subject, "profile", None) or UserProfile.objects.get_or_create(user=subject)[0]
+    if not can_view_profile(request.user, subject):
+        return HttpResponseForbidden()
+    return render(request, "journal/profile_detail.html", {"subject": subject, "profile": profile})
+
+@login_required
+def profile_edit(request, user_id=None):
+    """
+    Edit your own profile, or (if you have permission) a subuser's profile.
+    - Uses fixed prefixes: social / image / custom
+    - Reuses the same template for both cases
+    """
+    User = get_user_model()
+    target_user = request.user if user_id is None else get_object_or_404(User, pk=user_id)
+
+    if user_id is not None and not user_can_manage_user(request.user, target_user):
+        return HttpResponseForbidden("You can't edit this user's profile.")
+
+    profile, _ = UserProfile.objects.get_or_create(user=target_user)
+
+    if request.method == "POST":
+        form = ProfileForm(request.POST, request.FILES, instance=profile)
+
+        # IMPORTANT: keep these prefixes in sync with the template & HTMX row endpoints
+        social_fs = SocialFormSet(request.POST, prefix="social", instance=profile)
+        image_fs  = ImageFormSet(request.POST, request.FILES, prefix="image", instance=profile)
+        custom_fs = CustomFieldFormSet(request.POST, prefix="custom", instance=profile)
+
+        if form.is_valid() and social_fs.is_valid() and image_fs.is_valid() and custom_fs.is_valid():
+            form.save()
+            social_fs.save()
+            image_fs.save()
+            custom_fs.save()
+            # where to go after save
+            if user_id:
+                return redirect("journal:profile_detail_user", user_id=target_user.id)
+            return redirect("journal:profile_detail")
+    else:
+        form = ProfileForm(instance=profile)
+        social_fs = SocialFormSet(prefix="social", instance=profile)
+        image_fs  = ImageFormSet(prefix="image", instance=profile)
+        custom_fs = CustomFieldFormSet(prefix="custom", instance=profile)
+
+    ctx = {
+        "form": form,
+        "profile": profile,
+        "social_fs": social_fs,
+        "image_fs": image_fs,
+        "custom_fs": custom_fs,
+        "target_user": target_user if user_id else None,
+    }
+    return render(request, "journal/profile_edit.html", ctx)
+
+@login_required
+def profile_social_row(request, user_id=None):
+    target = request.user
+    if user_id is not None:
+        U = get_user_model()
+        target = get_object_or_404(U, pk=user_id)
+        if not user_can_manage_user(request.user, target):
+            return HttpResponseForbidden()
+
+    index = request.GET.get("index", "__prefix__")
+    form = SocialFormSet.form(prefix=f"social-{index}")  # keep in sync with formset prefix
+    return render(request, "journal/partials/profile_social_row.html", {"form": form})
+
+@login_required
+def profile_image_row(request, user_id=None):
+    target = request.user
+    if user_id is not None:
+        U = get_user_model()
+        target = get_object_or_404(U, pk=user_id)
+        if not user_can_manage_user(request.user, target):
+            return HttpResponseForbidden()
+
+    index = request.GET.get("index", "__prefix__")
+    form = ImageFormSet.form(prefix=f"image-{index}")
+    return render(request, "journal/partials/profile_image_row.html", {"form": form})
+
+@login_required
+def profile_custom_row(request, user_id=None):
+    target = request.user
+    if user_id is not None:
+        U = get_user_model()
+        target = get_object_or_404(U, pk=user_id)
+        if not user_can_manage_user(request.user, target):
+            return HttpResponseForbidden()
+
+    index = request.GET.get("index", "__prefix__")
+    form = CustomFieldFormSet.form(prefix=f"custom-{index}")
+    return render(request, "journal/partials/profile_custom_row.html", {"form": form})

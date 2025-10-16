@@ -3,6 +3,7 @@ from django.urls import path
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from . import views
+from . import views_profile
 
 def ok(_): return HttpResponse("OK", content_type="text/plain")
 
@@ -44,7 +45,22 @@ urlpatterns = [
     path("plans/", views.plans, name="plans"),
 
     # profile
-    path("profile/", views.profile, name="profile"),
+    path("profile/", views_profile.profile_detail, name="profile"), 
+    path("profile/", views_profile.profile_detail, name="profile_detail"),
+    path("profile/edit/", views_profile.profile_edit, name="profile_edit"),
+    path("u/<int:user_id>/profile/edit/", views.profile_edit, name="profile_edit_user"),
+    # optional: allow managers to view/edit by id
+    path("profile/<int:user_id>/", views_profile.profile_detail, name="profile_detail_by_id"),
+    path("profile/<int:user_id>/edit/", views_profile.profile_edit, name="profile_edit_by_id"),
+    path("profile/rows/social/", views_profile.social_form_row, name="profile_social_row"),
+    path("profile/<int:user_id>/rows/social/", views_profile.social_form_row, name="profile_social_row_user"),
+    path("profile/rows/image/",  views_profile.image_form_row,  name="profile_image_row"),
+    path("profile/<int:user_id>/rows/image/", views_profile.image_form_row, name="profile_image_row_user"),
+    path("profile/rows/custom/", views.profile_custom_row, name="profile_custom_row"),
+    path("u/<int:user_id>/profile/row/custom/", views.profile_custom_row, name="profile_custom_row_user"),
+
+    path("subusers/", views.subusers_list, name="subusers"),
+    path("subusers/add/", views.subuser_create, name="subuser_create"),
 ]
 
 urlpatterns += [ path("ok/", login_required(ok), name="ok") ]

@@ -1,23 +1,37 @@
-<table class="table table-sm align-middle" id="members-table">
-  <tr><th>User</th><th>Role</th><th></th></tr>
-  {% for m in memberships %}
-    <tr>
-      <td>{{ m.user.get_username }}</td>
-      <td>{{ m.role }}</td>
-      <td>
-        <form hx-post="{% url 'journal:member_set_role' m.pk %}" 
-              hx-target="#members-table" hx-swap="outerHTML" class="d-flex gap-2">
-          {% csrf_token %}
-          <select name="role" class="form-select form-select-sm" style="max-width:160px">
-            {% for val,label in ROLE_CHOICES %}
-              <option value="{{ val }}" {% if val == m.role %}selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-          </select>
-          <button class="btn btn-primary btn-sm">Update</button>
-        </form>
-      </td>
-    </tr>
-  {% empty %}
-    <tr><td colspan="3"><em>No members.</em></td></tr>
-  {% endfor %}
-</table>
+{% comment %} Expects: members queryset, request.user, org {% endcomment %}
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover align-middle mb-0 members-table">
+        <thead class="table-dark-subtle">
+          <tr>
+            <th style="width:38px" class="text-center">#</th>
+            <th style="min-width:180px">Name</th>
+            <th style="min-width:220px">Email</th>
+            <th style="width:170px">Role</th>
+            <th style="width:140px" class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="members-tbody">
+          {% for m in members %}
+            {% include "journal/partials/member_row.html" with m=m forloop=forloop %}
+            <td class="text-end">
+              {% if request.user|can_manage:m.user %}
+                <a class="btn btn-sm btn-outline-primary"
+                  href="{% url 'journal:profile_edit_user' m.user.id %}">
+                  Edit profile
+                </a>
+              {% endif %}
+            </td>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="text-center text-muted py-4">
+                No members yet.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

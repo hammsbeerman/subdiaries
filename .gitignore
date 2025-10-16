@@ -36,7 +36,6 @@ db.sqlite3-journal
 
 # Static & media (collected/generated at deploy or runtime)
 staticfiles/
-static/
 media/
 
 # Logs & runtime
