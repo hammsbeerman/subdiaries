@@ -11,15 +11,13 @@ import io, traceback
 def healthz(_request):
     return HttpResponse("ok\n", content_type="text/plain")
 
-# def root_safe(request):
-#     try:
-#         if not request.user.is_authenticated:
-#             return HttpResponseRedirect("/accounts/login/?next=/")
-#         return HttpResponse("OK — logged in", content_type="text/plain")
-#     except Exception:
-#         buf = io.StringIO()
-#         traceback.print_exc(file=buf)
-#         return HttpResponse("ERROR\n" + buf.getvalue(), content_type="text/plain", status=500)
+def root_safe(request):
+    if not request.user.is_authenticated:
+        login_url = reverse("login")
+        after_login = reverse("journal:profile_detail")
+        return HttpResponseRedirect(f"{login_url}?next={after_login}")
+    # If you still want / to be a simple landing for authed users:
+    return redirect("journal:profile_detail")
 
 # --- Diagnostics (opt-in via DEBUG or ENABLE_DIAG_ROUTES) ---------------------
 @csrf_exempt

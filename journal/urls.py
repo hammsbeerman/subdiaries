@@ -26,10 +26,10 @@ urlpatterns = [
     path("review/<int:pk>/reject/", views.entry_reject, name="entry_reject"),
     
     path("tabs/", views.tabs, name="tabs"),
+    path("tabs/table/", views.tabs_table, name="tabs_table"),
     path("tabs/create/", views.tab_create, name="tab_create"),
-    path("tabs/<int:pk>/toggle/", views.tab_toggle, name="tab_toggle"),
-    path("tabs/<int:pk>/edit/", views.tab_edit_form, name="tab_edit_form"),   # GET -> inline form row
-    path("tabs/<int:pk>/update/", views.tab_update, name="tab_update"),       # POST -> save rename
+    path("tabs/toggle/<int:pk>/", views.tab_toggle, name="tab_toggle"),
+    path("tabs/<int:pk>/edit/", views.tab_edit, name="tab_edit"),  # classic form page
 
     path("members/", views.members, name="members"),
     path("members/add/", views.member_add, name="member_add"),

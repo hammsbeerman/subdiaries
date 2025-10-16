@@ -34,7 +34,7 @@
     <h5>Nicknames</h5>
     <div class="card mb-3">
       <div class="card-body">
-        {% if profile.nicknames %}<p class="text-muted mb-2">Current: {{ profile.nicknames|join:", " }}</p>{% endif %}
+        {% if profile.nicknames %}<p class="text-muted mb-2">Current: {{ profile.nicknames_list|join:", " }}</p>{% endif %}
         {{ form.new_nickname }}
       </div>
     </div>

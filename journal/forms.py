@@ -121,25 +121,29 @@ class ProfileMiniForm(forms.ModelForm):
         }
 
 class UserProfileForm(forms.ModelForm):
-    # Optional helper to append a nickname (assumes JSON/list field on model)
-    new_nickname = forms.CharField(max_length=50, required=False, label="Add nickname")
-
     class Meta:
         model = UserProfile
-        # If your model uses about_me, rename "about" -> "about_me" here.
-        fields = ["display_name", "about", "profile_pic"]
+        fields = ["full_name", "about_me", "profile_pic", "nicknames"]
         widgets = {
-            "about": forms.Textarea(attrs={"rows": 4}),
+            "about_me": forms.Textarea(attrs={"rows": 4}),
+            "nicknames": forms.Textarea(
+                attrs={
+                    "rows": 2,
+                    "placeholder": "Comma or newline separated (e.g. Addy, A.K.)",
+                }
+            ),
+        }
+        help_texts = {
+            "nicknames": "Separate multiple nicknames with commas or new lines.",
         }
 
+    # Optional: normalize on save
     def save(self, commit=True):
         obj = super().save(commit=False)
-        nn = self.cleaned_data.get("new_nickname")
-        if nn:
-            nicks = list(obj.nicknames or [])
-            if nn not in nicks:
-                nicks.append(nn)
-                obj.nicknames = nicks
+        # Ensure consistent comma-separated storage
+        text = (obj.nicknames or "").replace("\r\n", "\n")
+        parts = [s.strip() for s in re.split(r"[,\n]+", text) if s.strip()]
+        obj.nicknames = ", ".join(dict.fromkeys(parts))  # de-dup, keep order
         if commit:
             obj.save()
         return obj

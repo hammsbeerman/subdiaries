@@ -69,7 +69,7 @@ class UserProfile(models.Model):
     onboarding_enabled = models.BooleanField(default=True)
     onboarding_step = models.PositiveSmallIntegerField(default=1)  # 1..5
     about_me    = models.TextField(blank=True)
-    nicknames   = JSONField(default=list, blank=True)      # ["AJ","Coach"]
+    nicknames = models.TextField(blank=True, default="")
     profile_pic = models.ImageField(
         upload_to=profile_upload_path, blank=True, null=True,
         validators=[FileExtensionValidator(["jpg","jpeg","png","webp"])],
@@ -82,6 +82,29 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.display_name or self.user.get_username()
+
+    @property
+    def nicknames_list(self):
+        """
+        Split the text on commas or newlines and return a clean list.
+        """
+        if not self.nicknames:
+            return []
+        return [s.strip() for s in re.split(r"[,\n]+", self.nicknames) if s.strip()]
+
+    def set_nicknames(self, items):
+        """
+        Accept an iterable of names and store as a stable comma-separated string.
+        """
+        cleaned = []
+        for s in items or []:
+            s = (s or "").strip()
+            if s:
+                cleaned.append(s)
+        # de-dup but keep order
+        seen = set()
+        uniq = [x for x in cleaned if not (x in seen or seen.add(x))]
+        self.nicknames = ", ".join(uniq)
 
 
 class ProfileImage(models.Model):

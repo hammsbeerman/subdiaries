@@ -137,7 +137,7 @@ MEDIA_ROOT = os.getenv("MEDIA_ROOT", str(BASE_DIR / "media") if DEBUG else "/srv
 
 # ── Auth redirects ─────────────────────────────────────────────────────────────
 LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = reverse_lazy("journal:profile")
+LOGIN_REDIRECT_URL = reverse_lazy("journal:profile_detail")
 LOGOUT_REDIRECT_URL = "/accounts/login/"
 
 # ── Email ──────────────────────────────────────────────────────────────────────

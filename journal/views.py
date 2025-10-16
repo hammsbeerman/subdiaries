@@ -51,7 +51,7 @@ def site_base_url(request):
 def index(request):
     org = get_user_org(request.user)   # <-- pass user
     if not org:
-        return redirect("journal:tutorial")
+        return redirect("journal:profile_detail")
 
     tabs = Tab.objects.filter(org=org, enabled=True)
     entries = (Entry.objects
@@ -158,41 +158,42 @@ def review_queue(request):
 
 
 
+
 @login_required
 def tabs(request):
+    if not user_is_moderator(request.user):
+        return HttpResponseForbidden()
     org = get_user_org(request.user)
-    rows = Tab.objects.filter(org=org).order_by("-enabled","name")
+    rows = Tab.objects.filter(org=org).order_by("-enabled", "name")
     form = TabForm()
-    if is_htmx(request):
-        html = render_to_string("journal/partials/tabs_table.html", {"tabs": rows}, request)
-        return HttpResponse(html)
     return render(request, "journal/tabs.html", {"tabs": rows, "form": form})
+
+def tabs_table(request):
+    """Return just the table (HTMX refresh target)."""
+    if not user_is_moderator(request.user):
+        return HttpResponseForbidden()
+    org = get_user_org(request.user)
+    rows = Tab.objects.filter(org=org).order_by("-enabled", "name")
+    html = render_to_string("journal/partials/tabs_table.html", {"tabs": rows}, request=request)
+    return HttpResponse(html)
 
 
 @login_required
 @require_POST
 def tab_create(request):
     if not user_is_moderator(request.user):
-        return HttpResponse(status=403)
+        return HttpResponseForbidden()
     org = get_user_org(request.user)
 
     name = " ".join((request.POST.get("name") or "").split()).strip()
     enabled = bool(request.POST.get("enabled"))
 
-    if not name:
-        rows = Tab.objects.filter(org=org).order_by("-enabled","name")
-        html = render_to_string("journal/partials/tabs_table.html", {"tabs": rows}, request)
-        # quick inline error banner (htmx will still replace the table)
-        html += '<div class="alert alert-danger mt-2" hx-swap-oob="true" id="tabs-error">Name is required.</div>'
-        return HttpResponse(html)
+    if name:
+        Tab.objects.create(org=org, name=name, enabled=enabled, created_by=request.user)
 
-    # Create the tab; model auto-generates slug
-    Tab.objects.create(org=org, name=name, enabled=enabled, created_by=request.user)
-
-    rows = Tab.objects.filter(org=org).order_by("-enabled","name")
-    html = render_to_string("journal/partials/tabs_table.html", {"tabs": rows}, request)
-    # also clear any prior error + optionally clear the form via OOB
-    html += '<div id="tabs-error" hx-swap-oob="true"></div>'
+    # Always re-render table (and optionally clear any error banner OOB)
+    rows = Tab.objects.filter(org=org).order_by("-enabled", "name")
+    html = render_to_string("journal/partials/tabs_table.html", {"tabs": rows}, request=request)
     return HttpResponse(html)
 
 @login_required
@@ -202,9 +203,11 @@ def tab_toggle(request, pk):
         return HttpResponseForbidden()
     org = get_user_org(request.user)
     t = get_object_or_404(Tab, pk=pk, org=org)
-    t.enabled = not t.enabled; t.save(update_fields=["enabled"])
-    rows = Tab.objects.filter(org=org).order_by("-enabled","name")
-    html = render_to_string("journal/partials/tabs_table.html", {"tabs": rows}, request)
+    t.enabled = not t.enabled
+    t.save(update_fields=["enabled"])
+
+    rows = Tab.objects.filter(org=org).order_by("-enabled", "name")
+    html = render_to_string("journal/partials/tabs_table.html", {"tabs": rows}, request=request)
     return HttpResponse(html)
 
 # --- Members admin ---
@@ -444,6 +447,62 @@ def tab_edit_form(request, pk):
     form = TabRenameForm(instance=t)
     html = render_to_string("journal/partials/tab_edit_row.html", {"t": t, "form": form}, request)
     return HttpResponse(html)
+
+@login_required
+@require_POST
+def tab_save_row(request, pk: int):
+    """Persist edits for one row, then return the refreshed table."""
+    if not user_is_moderator(request.user):
+        return HttpResponseForbidden()
+    org = get_user_org(request.user)
+    tab = get_object_or_404(Tab, pk=pk, org=org)
+
+    name = " ".join((request.POST.get("name") or "").split()).strip()
+    enabled = bool(request.POST.get("enabled"))
+
+    if not name:
+        rows = Tab.objects.filter(org=org).order_by("-enabled","name")
+        html = render_to_string("journal/partials/tabs_table.html", {"tabs": rows}, request)
+        html += '<div class="alert alert-danger mt-2" hx-swap-oob="true" id="tabs-error">Name is required.</div>'
+        return HttpResponse(html)
+
+    if tab.name != name or tab.enabled != enabled:
+        tab.name = name
+        tab.enabled = enabled
+        tab.save(update_fields=["name", "enabled"])
+
+    rows = Tab.objects.filter(org=org).order_by("-enabled","name")
+    html = render_to_string("journal/partials/tabs_table.html", {"tabs": rows}, request)
+    html += '<div id="tabs-error" hx-swap-oob="true"></div>'
+    return HttpResponse(html)
+
+@login_required
+def tab_edit_row(request, pk: int):
+    """Swap a single row into edit mode."""
+    if not user_is_moderator(request.user):
+        return HttpResponseForbidden()
+    org = get_user_org(request.user)
+    tab = get_object_or_404(Tab, pk=pk, org=org)
+    html = render_to_string("journal/partials/tab_edit_row.html", {"tab": tab}, request)
+    return HttpResponse(html)
+
+@login_required
+def tab_edit(request, pk):
+    """Classic edit page (no inline row edit)."""
+    if not user_is_moderator(request.user):
+        return HttpResponseForbidden()
+    org = get_user_org(request.user)
+    tab = get_object_or_404(Tab, pk=pk, org=org)
+
+    if request.method == "POST":
+        form = TabRenameForm(request.POST, instance=tab)
+        if form.is_valid():
+            form.save()
+            return redirect("journal:tabs")
+    else:
+        form = TabRenameForm(instance=tab)
+
+    return render(request, "journal/tab_edit.html", {"form": form, "tab": tab})
 
 @login_required
 @require_POST

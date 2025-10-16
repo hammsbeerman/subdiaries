@@ -1,24 +1,29 @@
-<tr id="tab-row-{{ t.pk }}">
+<tr id="tab-row-{{ tab.id }}">
+  <td class="text-muted">#{{ tab.id }}</td>
   <td colspan="3">
-    <form class="row g-2 align-items-end"
-          hx-post="{% url 'journal:tab_update' t.pk %}"
-          hx-target="#tabs-table" hx-swap="outerHTML">
+    <form
+      class="row gx-2 gy-2 align-items-center"
+      hx-post="{% url 'journal:tab_save_row' tab.id %}"
+      hx-target="#tabs-wrap"
+      hx-swap="outerHTML"
+    >
       {% csrf_token %}
-
-      <div class="col-md-6">
-        <label class="form-label">Tab name</label>
-        {{ form.name }}
-        {% for e in form.name.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      <div class="col">
+        <input name="name" class="form-control" value="{{ tab.name }}" placeholder="Tab name">
       </div>
-
-      <div class="col-md-6 text-end">
-        <button class="btn btn-primary">Save</button>
-        <button class="btn btn-secondary ms-1"
-                type="button"
-                hx-get="{% url 'journal:tabs' %}"
-                hx-target="#tabs-table" hx-swap="outerHTML">
-          Cancel
-        </button>
+      <div class="col-auto form-check">
+        <input class="form-check-input" type="checkbox" name="enabled" id="tab-enabled-{{ tab.id }}" {% if tab.enabled %}checked{% endif %}>
+        <label class="form-check-label" for="tab-enabled-{{ tab.id }}">Enabled</label>
+      </div>
+      <div class="col-auto ms-auto">
+        <button class="btn btn-sm btn-primary" type="submit">Save</button>
+        <button
+          class="btn btn-sm btn-secondary"
+          type="button"
+          hx-get="{% url 'journal:tabs_table' %}"
+          hx-target="#tabs-wrap"
+          hx-swap="outerHTML"
+        >Cancel</button>
       </div>
     </form>
   </td>
