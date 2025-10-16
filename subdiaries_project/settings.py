@@ -2,6 +2,11 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv, find_dotenv
 from django.urls import reverse_lazy
+import logging
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.celery import CeleryIntegration  # if you use Celery
+from sentry_sdk.integrations.logging import LoggingIntegration
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
 PROJECT_DIR = Path(__file__).resolve().parent          # …/subdiaries_project
@@ -160,3 +165,38 @@ ENABLE_BILLING = get_bool("ENABLE_BILLING", False)
 BILLING_MODE = os.getenv("BILLING_MODE", "per_moderator")
 TRIAL_DAYS = int(os.getenv("TRIAL_DAYS", "14"))
 GRACE_DAYS = int(os.getenv("GRACE_DAYS", "7"))
+
+# Sentry only if DSN is present
+SENTRY_DSN = os.getenv("SENTRY_DSN")
+if SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[
+            DjangoIntegration(),
+            CeleryIntegration(),                      # remove if not using Celery
+            LoggingIntegration(
+                level=logging.INFO,                   # breadcrumbs: INFO+ logs
+                event_level=logging.ERROR,            # send events for ERROR+
+            ),
+        ],
+        # Perf monitoring (tune these!)
+        traces_sample_rate=0.1,                        # 10% of requests
+        profiles_sample_rate=0.1,                      # 10% profiling
+
+        # Useful metadata
+        environment=os.getenv("SENTRY_ENV", "development"),
+        release=os.getenv("SENTRY_RELEASE"),
+
+        # Privacy: send user info only if you’re comfortable
+        send_default_pii=False,
+    )
+
+    # Optional: scrub/deny-list events
+    # def before_send(event, hint):
+    #     # e.g., drop noisy 404s
+    #     if event.get("exception"):
+    #         exc = event["exception"]["values"][-1]["type"]
+    #         if exc in {"Http404"}:
+    #             return None
+    #     return event
+    # sentry_sdk.Hub.current.client.options["before_send"] = before_send
